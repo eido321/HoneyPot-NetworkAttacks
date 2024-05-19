@@ -1,7 +1,15 @@
+# schemas/schemas.py
 from pydantic import BaseModel
 
-# For use with Cognito
-class User(BaseModel):
+class UserCreate(BaseModel):
     username: str
     email: str
     password: str
+
+class User(BaseModel):
+    id: str
+    username: str
+    email: str
+
+    class Config:
+        from_attributes = True

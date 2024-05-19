@@ -5,15 +5,24 @@ load_dotenv()
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import OperationalError
 
+# Load environment variables
 db_username = os.environ.get('DB_USERNAME')
 db_password = os.environ.get('DB_PASSWORD')
-SQLALCHEMY_DATABASE_URL = f"postgresql://{db_username}:{db_password}@localhost/HoneyPotDB"
+db_host = os.environ.get('DB_HOST', 'localhost')  # Ensure you specify the host
+db_name = os.environ.get('DB_NAME', 'HoneyPotDB')  # Ensure you specify the database name
 
+# Construct the database URL
+SQLALCHEMY_DATABASE_URL = f"postgresql://{db_username}:{db_password}@{db_host}/{db_name}"
+
+# Create the SQLAlchemy engine
 engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=True)
 
+# Create a configured "Session" class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+# Create a Base class for the models to inherit
 Base = declarative_base()
 
 def get_db():
@@ -23,6 +32,12 @@ def get_db():
     finally:
         db.close()
 
-
 def create_tables():
     Base.metadata.create_all(bind=engine)
+
+def test_connection():
+    try:
+        with engine.connect():
+            print("\033[92mINFO:     \033[0mDatabase connection was successful")
+    except OperationalError as e:
+        print(f"\033[91mINFO:     \033[0mDatabase connection has failed: {e}")
